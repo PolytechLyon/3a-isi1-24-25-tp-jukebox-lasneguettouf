@@ -22,7 +22,7 @@ function addTrack(track) {
   <h2>Player</h2>
   <p>Choose a track to play:</p>
 
-  <!-- Section Player (vide pour le moment, à développer plus tard si nécessaire) -->
+  <!-- Section Player -->
   <div>
     <fieldset>
       <legend>Playback mode</legend>
@@ -71,19 +71,3 @@ function addTrack(track) {
   <AddTrack @add-track="addTrack" />
 </template>
 
-<style scoped>
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  padding: 10px 0;
-  border-bottom: 1px solid #ccc;
-}
-
-button {
-  margin-left: 10px;
-  padding: 5px 10px;
-}
-</style>
