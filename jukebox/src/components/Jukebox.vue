@@ -1,4 +1,10 @@
 <script setup>
+import AddTrack from './AddTrack.vue';
+
+// Si tu utilises d'autres logiques ici, tu peux les garder dans ce fichier.
+import { ref } from "vue";
+
+const selectedMode = ref("repeatList");
 </script>
 
 <template>
@@ -41,4 +47,6 @@
     </div>
     <hr>
     <h2>New track</h2>
+    <AddTrack />
 </template>
+
