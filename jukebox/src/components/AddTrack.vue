@@ -1,37 +1,42 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref } from 'vue';
 
-const trackMethod = ref("url");
-const url = ref("");
-const file = ref(null);
+// État local pour l'URL
+const trackUrl = ref("");
 
-const isButtonDisabled = computed(() => {
-  return trackMethod.value === "url" ? !url.value : !file.value;
-});
+// Événement pour transmettre la piste ajoutée au parent
+const emit = defineEmits(["add-track"]);
 
-function onFileSelect(event) {
-  file.value = event.target.files[0];
+// Ajouter une piste
+function addTrack() {
+  if (trackUrl.value.trim() !== "") {
+    emit("add-track", trackUrl.value); // Émet l'URL de la piste au parent
+    trackUrl.value = ""; // Réinitialise le champ
+  } else {
+    alert("Please provide a valid URL.");
+  }
 }
 </script>
 
 <template>
-    <div>
-        <label for="add-track">Add track</label>
-        <select id="add-track" v-model="trackMethod">
-        <option value="url">By URL</option>
-        <option value="file">By File</option>
-        </select>
-        <input
-        v-if="trackMethod === 'url'"
-        type="text"
-        placeholder="Provide URL"
-        v-model="url"
-        />
-        <input v-else type="file" @change="onFileSelect" />
-        <button :disabled="isButtonDisabled">
-        {{ trackMethod === 'url' ? 'Add by URL' : 'Add by File' }}
-        </button>
-    </div>
+  <div>
+    <input
+      type="text"
+      placeholder="Provide a track URL"
+      v-model="trackUrl"
+    />
+    <button @click="addTrack">Add Track</button>
+  </div>
 </template>
 
+<style scoped>
+input {
+  padding: 5px;
+  width: 300px;
+}
 
+button {
+  margin-left: 10px;
+  padding: 5px 10px;
+}
+</style>
