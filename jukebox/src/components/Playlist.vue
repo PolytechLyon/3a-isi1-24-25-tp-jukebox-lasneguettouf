@@ -28,13 +28,15 @@ function deleteTrack(index) {
     <ul v-else>
         <li v-for="(track, index) in tracks" :key="index">
             <div class="track-item">
-                <p class="track-name">{{ track }}</p>
+                <p class="track-name">{{ track.name }}</p>
                 <button @click="playTrack(track)" class="btn-play">Play</button>
                 <button @click="deleteTrack(index)" class="btn-delete">Delete</button>
             </div>
         </li>
     </ul>
 </template>
+
+
 
 <style scoped>
 /* Style pour la liste */
