@@ -1,75 +1,154 @@
 <script setup>
-import { ref, defineProps, watch } from 'vue';
+import { ref, defineProps } from 'vue';
 
 // Reçoit la piste en cours
 defineProps({
-    currentTrack: {
-        type: Object,
-        default: null,
-    },
+  currentTrack: {
+    type: Object,
+    default: null,
+  },
+  tracks: {
+    type: Array,
+    default: () => [],
+  },
 });
-
-// État pour le mode de lecture
-const selectedMode = ref("noRepeat");
 
 // Référence à l'élément audio
 const audioElement = ref(null);
 
-// Surveille la fin de la piste pour répéter si "Repeat track" est activé
+// Suivi de la progression
+const currentTime = ref(0);
+const duration = ref(0);
+const selectedMode = ref("noRepeat"); // Mode par défaut : pas de répétition
+
+// Lecture
+function playAudio() {
+  if (audioElement.value) {
+    audioElement.value.play();
+  }
+}
+
+// Pause
+function pauseAudio() {
+  if (audioElement.value) {
+    audioElement.value.pause();
+  }
+}
+
+// Arrêt (pause + retour au début)
+function stopAudio() {
+  if (audioElement.value) {
+    audioElement.value.pause();
+    audioElement.value.currentTime = 0;
+  }
+}
+
+// Gestion de la fin de la piste
 function handleTrackEnd() {
-    if (selectedMode.value === "repeatTrack" && audioElement.value) {
-        audioElement.value.currentTime = 0; // Revient au début
-        audioElement.value.play(); // Relance la lecture
+  const currentIndex = tracks.value.findIndex(track => track === currentTrack.value);
+
+  if (selectedMode.value === "repeatTrack") {
+    // Répéter la même piste
+    if (audioElement.value) {
+      audioElement.value.currentTime = 0;
+      audioElement.value.play();
     }
+  } else if (selectedMode.value === "repeatList") {
+    // Passer à la piste suivante ou revenir à la première
+    const nextIndex = (currentIndex + 1) % tracks.value.length;
+    currentTrack.value = tracks.value[nextIndex];
+  } else {
+    // Ne rien faire en mode "No repeat"
+    console.log("Playback ended, no repeat mode active.");
+  }
+}
+
+// Met à jour le temps actuel et la durée de la piste
+function updateProgress() {
+  if (audioElement.value) {
+    currentTime.value = audioElement.value.currentTime;
+    duration.value = audioElement.value.duration || 0;
+  }
+}
+
+// Change la position de lecture
+function seek(event) {
+  if (audioElement.value) {
+    const newTime = (event.target.value / 100) * duration.value;
+    audioElement.value.currentTime = newTime;
+    currentTime.value = newTime;
+  }
+}
+
+// Formate le temps en minutes et secondes
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 </script>
 
 <template>
-    <div>
-        <div v-if="currentTrack">
-            <p><strong>Now playing:</strong> {{ currentTrack.name }}</p>
-            <audio
-                ref="audioElement"
-                controls
-                autoplay
-                @ended="handleTrackEnd"
-            >
-                <source :src="currentTrack.url" type="audio/mpeg" />
-                Your browser does not support the audio element.
-            </audio>
-        </div>
-        <div v-else>
-            <p>No track selected.</p>
-        </div>
+  <div>
+    <div v-if="currentTrack">
+      <p><strong>Now playing:</strong> {{ currentTrack.name }}</p>
+      <audio
+        ref="audioElement"
+        :src="currentTrack.url"
+        autoplay
+        @ended="handleTrackEnd"
+        @timeupdate="updateProgress"
+      ></audio>
+
+      <!-- Barre de progression -->
+      <input
+        type="range"
+        min="0"
+        max="100"
+        :value="(currentTime / duration) * 100 || 0"
+        @input="seek"
+      />
+      <div>
+        <span>{{ formatTime(currentTime) }}</span> /
+        <span>{{ formatTime(duration) }}</span>
+      </div>
+
+      <button @click="playAudio">Play</button>
+      <button @click="pauseAudio">Pause</button>
+      <button @click="stopAudio">Stop</button>
     </div>
-    <fieldset>
-        <legend>Playback mode</legend>
-        <label>
-            <input
-                type="radio"
-                name="playbackMode"
-                value="repeatList"
-                v-model="selectedMode"
-            />
-            Repeat list
-        </label>
-        <label>
-            <input
-                type="radio"
-                name="playbackMode"
-                value="repeatTrack"
-                v-model="selectedMode"
-            />
-            Repeat track
-        </label>
-        <label>
-            <input
-                type="radio"
-                name="playbackMode"
-                value="noRepeat"
-                v-model="selectedMode"
-            />
-            Don't repeat
-        </label>
-    </fieldset>
+    <div v-else>
+      <p>No track selected.</p>
+    </div>
+  </div>
+  <fieldset>
+    <legend>Playback mode</legend>
+    <label>
+      <input
+        type="radio"
+        name="playbackMode"
+        value="repeatList"
+        v-model="selectedMode"
+      />
+      Repeat list
+    </label>
+    <label>
+      <input
+        type="radio"
+        name="playbackMode"
+        value="repeatTrack"
+        v-model="selectedMode"
+      />
+      Repeat track
+    </label>
+    <label>
+      <input
+        type="radio"
+        name="playbackMode"
+        value="noRepeat"
+        v-model="selectedMode"
+      />
+      Don't repeat
+    </label>
+  </fieldset>
 </template>
