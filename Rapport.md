@@ -23,7 +23,6 @@ Jukebox.vue : Le composant parent, qui gère les interactions entre AddTrack.vue
 ## Difficultés rencontrées (optionnel)
 Lors de la mise en place des modes de lecture, nous avons rencontré des difficultés à gérer les transitions entre pistes dans Repeat List et Repeat Track. La solution a consisté à :
 
-Utiliser emit() dans Player.vue pour notifier le composant parent (Jukebox.vue) des changements de piste.
-Introduire un watch() pour détecter les modifications de la piste en cours et recharger l’audio.
+Utiliser emit() dans Player.vue pour notifier le composant parent (Jukebox.vue) des changements de piste et d'introduire un watch() pour détecter les modifications de la piste en cours et recharger l’audio.
 ## Extensions réalisées (optionnel)
 Nous avons réalisé l'extension qui permet aux pistes passées par URL dans la playlist de rester en mémoire même lorsque la page est rafraîchie.
