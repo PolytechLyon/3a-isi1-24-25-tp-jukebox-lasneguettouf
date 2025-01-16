@@ -14,8 +14,15 @@ function handleAddTrack(track) {
 
 // Jouer une piste
 function handlePlayTrack(track) {
-    currentTrack.value = track; // Définit la piste sélectionnée comme la piste en cours
+    console.log("handlePlayTrack called with:", track);
+    
+    currentTrack.value = null; // Réinitialisation
+    
+    setTimeout(() => {
+        currentTrack.value = JSON.parse(JSON.stringify(track)); // Création d'une nouvelle référence
+    }, 100);
 }
+
 </script>
 
 <template>

@@ -14,8 +14,10 @@ const emit = defineEmits(["play-track", "delete-track"]);
 
 // Fonction pour jouer une piste
 function playTrack(track) {
+    console.log("Track selected:", track);
     emit("play-track", track);
 }
+
 
 // Fonction pour supprimer une piste
 function deleteTrack(index) {

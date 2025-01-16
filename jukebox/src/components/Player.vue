@@ -1,7 +1,7 @@
 <script setup>
-import { ref, defineProps, toRefs } from 'vue';
+import { ref, defineProps, toRefs, watch, defineEmits } from 'vue';
 
-// Reçoit les pistes et la piste en cours
+// Propriétés reçues du parent
 const props = defineProps({
   currentTrack: {
     type: Object,
@@ -13,9 +13,9 @@ const props = defineProps({
   },
 });
 
-// On rend `tracks` réactif et on crée une copie modifiable de `currentTrack`
-const { tracks } = toRefs(props);
-const currentTrack = ref(props.currentTrack);
+// Rend `tracks` et `currentTrack` réactifs
+const { tracks, currentTrack } = toRefs(props);
+const emit = defineEmits(["update:currentTrack"]); // Permet de notifier le parent des changements
 
 // Référence à l'élément audio
 const audioElement = ref(null);
@@ -25,11 +25,26 @@ const currentTime = ref(0);
 const duration = ref(0);
 const selectedMode = ref("noRepeat"); // Mode par défaut : pas de répétition
 
+// Watch pour détecter les changements de piste
+watch(() => props.currentTrack?.url, (newUrl) => {
+    if (newUrl) {
+        console.log("Nouvelle piste reçue :", props.currentTrack);
+        if (audioElement.value) {
+            audioElement.value.src = newUrl;  
+            audioElement.value.load();  
+            audioElement.value.play().catch(err => console.error("Erreur de lecture :", err)); 
+        }
+    } else {
+        console.log("Aucune piste reçue ou champ 'url' manquant");
+    }
+}, { immediate: true });
+
 // Lecture
 function playAudio() {
-  if (audioElement.value) {
-    audioElement.value.play();
-  }
+    if (audioElement.value) {
+        console.log("Playing track:", currentTrack.value);
+        audioElement.value.play();
+    }
 }
 
 // Pause
@@ -63,14 +78,8 @@ function handleTrackEnd() {
     console.log("Going to next track...");
     if (tracks.value.length > 0) {
       const nextIndex = (currentIndex + 1) % tracks.value.length;
-      currentTrack.value = { ...tracks.value[nextIndex] }; // Créer une nouvelle référence
+      emit("update:currentTrack", { ...tracks.value[nextIndex] }); // Met à jour la piste via le parent
     }
-
-    setTimeout(() => {
-      if (audioElement.value) {
-        audioElement.value.play();
-      }
-    }, 100);
   } else {
     console.log("No repeat, stopping playback.");
   }
@@ -101,14 +110,13 @@ function formatTime(seconds) {
 }
 </script>
 
-
 <template>
   <div>
     <div v-if="currentTrack">
       <p><strong>Now playing:</strong> {{ currentTrack.name }}</p>
       <audio
         ref="audioElement"
-        :src="currentTrack.url"
+        :src="currentTrack?.url"
         autoplay
         @ended="handleTrackEnd"
         @timeupdate="updateProgress"
