@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue';
 
-// État local pour le type d'ajout et les données
-const addTrackMethod = ref("file"); // Par défaut : fichier
+// État local pour choisir la méthode d'ajout
+const addTrackMethod = ref("file"); // "file" ou "url"
 const trackFile = ref(null);
+const trackUrl = ref(""); // Stocke l'URL saisie
 
 // Événement pour transmettre la piste ajoutée au parent
 const emit = defineEmits(["add-track"]);
@@ -12,13 +13,19 @@ const emit = defineEmits(["add-track"]);
 function addTrack() {
     if (addTrackMethod.value === "file") {
         if (trackFile.value) {
-            // Créer une URL Blob pour le fichier
             const fileUrl = URL.createObjectURL(trackFile.value);
             emit("add-track", { name: trackFile.value.name, url: fileUrl });
-            trackFile.value = null; // Réinitialise le champ fichier
+            trackFile.value = null;
         } else {
             alert("Please select a file.");
         }
+    } else if (addTrackMethod.value === "url") {
+        if (trackUrl.value.trim() === "") {
+            alert("Please enter a valid URL.");
+            return;
+        }
+        emit("add-track", { name: trackUrl.value.split('/').pop(), url: trackUrl.value });
+        trackUrl.value = "";
     }
 }
 
@@ -29,20 +36,21 @@ function onFileChange(event) {
 </script>
 
 <template>
-<div>
-    <label for="addTrackMethod">Add track by:</label>
-    <select id="addTrackMethod" v-model="addTrackMethod" disabled>
-        <option value="file">Via file upload</option>
-    </select>
-
     <div>
-        <input
-            type="file"
-            @change="onFileChange"
-            accept=".mp3"
-        />
-    </div>
+        <label for="addTrackMethod">Add track by:</label>
+        <select id="addTrackMethod" v-model="addTrackMethod">
+            <option value="file">Via file upload</option>
+            <option value="url">Via URL</option>
+        </select>
 
-    <button @click="addTrack" :disabled="!trackFile">Add uploaded file</button>
-</div>
+        <div v-if="addTrackMethod === 'file'">
+            <input type="file" @change="onFileChange" accept=".mp3" />
+            <button @click="addTrack" :disabled="!trackFile">Add uploaded file</button>
+        </div>
+
+        <div v-if="addTrackMethod === 'url'">
+            <input type="text" v-model="trackUrl" placeholder="Enter track URL" />
+            <button @click="addTrack" :disabled="!trackUrl.trim()">Add URL track</button>
+        </div>
+    </div>
 </template>

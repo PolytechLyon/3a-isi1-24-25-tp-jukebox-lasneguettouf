@@ -25,6 +25,20 @@ function handleUpdateCurrentTrack(updatedTrack) {
   console.log("Updated current track:", updatedTrack);
   currentTrack.value = updatedTrack;
 }
+
+function handleDeleteTrack(index) {
+    console.log("Suppression de la piste à l'index :", index);
+    
+    // Vérifier si la piste supprimée est celle en cours de lecture
+    if (tracks.value[index]?.url === currentTrack.value?.url) {
+        console.log("La piste supprimée est celle en cours de lecture. Arrêt de la lecture.");
+        currentTrack.value = null;
+    }
+
+    // Supprimer la piste de la liste
+    tracks.value.splice(index, 1);
+}
+
 </script>
 
 <template>
@@ -40,7 +54,7 @@ function handleUpdateCurrentTrack(updatedTrack) {
   <hr>
   <h2>Playlist</h2>
   <!-- Passe les pistes et gère l'événement play -->
-  <Playlist :tracks="tracks" @play-track="handlePlayTrack" />
+  <Playlist :tracks="tracks" @play-track="handlePlayTrack" @delete-track="handleDeleteTrack" />
   <hr>
   <h2>New track</h2>
   <AddTrack @add-track="handleAddTrack" />
