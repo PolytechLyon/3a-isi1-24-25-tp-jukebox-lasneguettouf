@@ -1,44 +1,49 @@
 <script setup>
-import AddTrack from './AddTrack.vue';
-import Player from './Player.vue';
-import Playlist from './Playlist.vue';
-import { ref } from "vue";
+import { ref, onMounted, watch } from "vue";
+import AddTrack from "./AddTrack.vue";
+import Player from "./Player.vue";
+import Playlist from "./Playlist.vue";
 
+// Création de la liste des pistes et de la piste en cours de lecture
 const tracks = ref([]);
-const currentTrack = ref(null); // Piste en cours de lecture
+const currentTrack = ref(null);
 
-// Ajouter une piste
+// Sauvegarde la playlist dans localStorage
+// Sauvegarde uniquement les pistes qui ont une URL valide et ne sont pas des fichiers locaux
+function saveTracks() {
+    const urlTracks = tracks.value.filter(track => !track.url.startsWith("blob:"));
+    localStorage.setItem("jukebox_tracks", JSON.stringify(urlTracks));
+}
+
+
+// Charge la playlist depuis localStorage au démarrage
+onMounted(() => {
+    const savedTracks = localStorage.getItem("jukebox_tracks");
+    if (savedTracks) {
+        tracks.value = JSON.parse(savedTracks);
+    }
+});
+
+// Surveiller les changements dans la playlist pour la sauvegarder automatiquement
+watch(tracks, saveTracks, { deep: true });
+
+// Ajouter une piste à la playlist
 function handleAddTrack(track) {
-  tracks.value.push(track);
+    tracks.value.push(track);
 }
 
 // Jouer une piste
 function handlePlayTrack(track) {
-  currentTrack.value = null; // Réinitialisation
-  setTimeout(() => {
-    currentTrack.value = JSON.parse(JSON.stringify(track)); // Création d'une nouvelle référence
-  }, 100);
+    currentTrack.value = track;
 }
 
-// Recevoir une piste mise à jour (via Repeat List)
-function handleUpdateCurrentTrack(updatedTrack) {
-  console.log("Updated current track:", updatedTrack);
-  currentTrack.value = updatedTrack;
-}
-
+// Supprimer une piste
 function handleDeleteTrack(index) {
-    console.log("Suppression de la piste à l'index :", index);
-    
-    // Vérifier si la piste supprimée est celle en cours de lecture
     if (tracks.value[index]?.url === currentTrack.value?.url) {
-        console.log("La piste supprimée est celle en cours de lecture. Arrêt de la lecture.");
-        currentTrack.value = null;
+        currentTrack.value = null; // Stop la lecture si la piste supprimée est en cours
     }
-
-    // Supprimer la piste de la liste
     tracks.value.splice(index, 1);
 }
-
 </script>
 
 <template>
