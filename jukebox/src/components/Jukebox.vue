@@ -1,59 +1,54 @@
 <script setup>
-import AddTrack from './AddTrack.vue';
-import Player from './Player.vue';
-import Playlist from './Playlist.vue';
-import { ref } from "vue";
+import { ref, onMounted, watch } from "vue";
+import AddTrack from "./AddTrack.vue";
+import Player from "./Player.vue";
+import Playlist from "./Playlist.vue";
 
 const tracks = ref([]);
-const currentTrack = ref(null); // Piste en cours de lecture
+const currentTrack = ref(null);
 
-// Ajouter une piste
+// Sauvegarde la playlist dans localStorage
+function saveTracks() {
+    const urlTracks = tracks.value.filter(track => !track.url.startsWith("blob:"));
+    localStorage.setItem("jukebox_tracks", JSON.stringify(urlTracks));
+}
+
+// Charge la playlist depuis localStorage au démarrage
+onMounted(() => {
+    const savedTracks = localStorage.getItem("jukebox_tracks");
+    if (savedTracks) {
+        tracks.value = JSON.parse(savedTracks);
+    }
+});
+
+watch(tracks, saveTracks, { deep: true });
+
+// Ajouter une piste à la playlist
 function handleAddTrack(track) {
-  tracks.value.push(track);
+    tracks.value.push(track);
 }
 
 // Jouer une piste
 function handlePlayTrack(track) {
-  currentTrack.value = null; // Réinitialisation
-  setTimeout(() => {
-    currentTrack.value = JSON.parse(JSON.stringify(track)); // Création d'une nouvelle référence
-  }, 100);
+    currentTrack.value = track;
 }
 
-// Recevoir une piste mise à jour (via Repeat List)
-function handleUpdateCurrentTrack(updatedTrack) {
-  console.log("Updated current track:", updatedTrack);
-  currentTrack.value = updatedTrack;
-}
-
+// Supprimer une piste
 function handleDeleteTrack(index) {
-    console.log("Suppression de la piste à l'index :", index);
-    
-    // Vérifier si la piste supprimée est celle en cours de lecture
     if (tracks.value[index]?.url === currentTrack.value?.url) {
-        console.log("La piste supprimée est celle en cours de lecture. Arrêt de la lecture.");
         currentTrack.value = null;
     }
-
-    // Supprimer la piste de la liste
     tracks.value.splice(index, 1);
 }
-
 </script>
 
 <template>
   <h1>Jukebox</h1>
   <hr>
   <h2>Player</h2>
-  <!-- Passe la piste en cours et écoute l'événement pour la piste suivante -->
-  <Player
-    :currentTrack="currentTrack"
-    :tracks="tracks"
-    @update:currentTrack="handleUpdateCurrentTrack"
-  />
+  <Player :currentTrack="currentTrack" :tracks="tracks" @update:currentTrack="handleUpdateCurrentTrack"/>
   <hr>
   <h2>Playlist</h2>
-  <!-- Passe les pistes et gère l'événement play -->
   <Playlist :tracks="tracks" @play-track="handlePlayTrack" @delete-track="handleDeleteTrack" />
   <hr>
   <h2>New track</h2>

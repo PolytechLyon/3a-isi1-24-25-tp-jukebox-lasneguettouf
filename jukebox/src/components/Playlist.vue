@@ -1,7 +1,6 @@
 <script setup>
 import { defineProps } from "vue";
 
-// Accepte la liste des pistes comme une prop
 defineProps({
     tracks: {
         type: Array,
@@ -9,17 +8,17 @@ defineProps({
     },
 });
 
-// Événements à transmettre au parent
+// Transmission des évênements au parent
 const emit = defineEmits(["play-track", "delete-track"]);
 
-// Fonction pour jouer une piste
+// Joueur une piste
 function playTrack(track) {
     console.log("Track selected:", track);
     emit("play-track", track);
 }
 
 
-// Fonction pour supprimer une piste
+// Suppression d'une piste
 function deleteTrack(index) {
     emit("delete-track", index);
 }
@@ -41,7 +40,7 @@ function deleteTrack(index) {
 
 
 <style scoped>
-/* Style pour la liste */
+
 ul {
     list-style-type: none;
     padding: 0;
@@ -94,4 +93,5 @@ button {
 .btn-delete:hover {
     background-color: #e53935;
 }
+
 </style>
