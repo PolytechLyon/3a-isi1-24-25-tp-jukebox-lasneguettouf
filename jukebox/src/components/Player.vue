@@ -1,7 +1,6 @@
 <script setup>
 import { ref, defineProps, toRefs, watch, defineEmits } from 'vue';
 
-// Propriétés reçues du parent
 const props = defineProps({
   currentTrack: {
     type: Object,
@@ -13,19 +12,16 @@ const props = defineProps({
   },
 });
 
-// Réactivité et gestion des événements
 const { tracks, currentTrack } = toRefs(props);
-const emit = defineEmits(["update:currentTrack"]); // Permet de notifier le parent des changements
+const emit = defineEmits(["update:currentTrack"]);
 
-// Référence à l'élément audio
 const audioElement = ref(null);
 
-// Suivi de la progression
 const currentTime = ref(0);
 const duration = ref(0);
-const selectedMode = ref("noRepeat"); // Mode par défaut : pas de répétition
+const selectedMode = ref("noRepeat"); 
 
-// Watch pour détecter les changements de piste
+// Detection du changement de piste
 watch(
   () => props.currentTrack?.url,
   (newUrl) => {
@@ -59,7 +55,7 @@ function pauseAudio() {
   }
 }
 
-// Arrêt (pause + retour au début)
+// Arrêt
 function stopAudio() {
   if (audioElement.value) {
     audioElement.value.pause();
@@ -69,31 +65,29 @@ function stopAudio() {
 
 // Gestion de la fin de la piste
 function handleTrackEnd() {
-  console.log("Track ended. Mode selected:", selectedMode.value);
+  console.log("Piste finie, mode séléctionné:", selectedMode.value);
 
   const currentIndex = tracks.value.findIndex(
     (track) => track.name === currentTrack.value?.name
   );
 
   if (selectedMode.value === "repeatTrack") {
-    // Répéter la piste actuelle
     if (audioElement.value) {
       audioElement.value.currentTime = 0;
       audioElement.value.play();
     }
   } else if (selectedMode.value === "repeatList") {
-    // Passer à la piste suivante dans la playlist
-    console.log("Passing to next track...");
+    console.log("Passage à la piste suivante...");
     if (tracks.value.length > 0) {
-      const nextIndex = (currentIndex + 1) % tracks.value.length; // Boucler à la première piste si on atteint la fin
-      emit("update:currentTrack", { ...tracks.value[nextIndex] }); // Notifier le parent avec la piste suivante
+      const nextIndex = (currentIndex + 1) % tracks.value.length;
+      emit("update:currentTrack", { ...tracks.value[nextIndex] });
     }
   } else {
-    console.log("No repeat, stopping playback.");
+    console.log("Pas de répétition.");
   }
 }
 
-// Met à jour le temps actuel et la durée de la piste
+// Mise à jour du temps actuel et de la durée de la piste
 function updateProgress() {
   if (audioElement.value) {
     currentTime.value = audioElement.value.currentTime;
@@ -101,7 +95,7 @@ function updateProgress() {
   }
 }
 
-// Change la position de lecture
+// Actuallistation de la position de lecture
 function seek(event) {
   if (audioElement.value) {
     const newTime = (event.target.value / 100) * duration.value;
@@ -110,7 +104,7 @@ function seek(event) {
   }
 }
 
-// Formate le temps en minutes et secondes
+// Formatage du temps en minute seconde
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -129,8 +123,6 @@ function formatTime(seconds) {
         @ended="handleTrackEnd"
         @timeupdate="updateProgress"
       ></audio>
-
-      <!-- Barre de progression -->
       <input
         type="range"
         min="0"

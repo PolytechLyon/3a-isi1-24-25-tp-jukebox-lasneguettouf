@@ -1,15 +1,14 @@
 <script setup>
 import { ref } from 'vue';
 
-// État local pour choisir la méthode d'ajout
-const addTrackMethod = ref("file"); // "file" ou "url"
+const addTrackMethod = ref("file"); 
 const trackFile = ref(null);
-const trackUrl = ref(""); // Stocke l'URL saisie
+const trackUrl = ref("");
 
-// Événement pour transmettre la piste ajoutée au parent
+// Transmission de la piste ajoutée au parent
 const emit = defineEmits(["add-track"]);
 
-// Ajouter une piste
+// Ajout d'une piste
 function addTrack() {
     if (addTrackMethod.value === "file") {
         if (trackFile.value) {
@@ -33,6 +32,7 @@ function addTrack() {
 function onFileChange(event) {
     trackFile.value = event.target.files[0];
 }
+
 </script>
 
 <template>
