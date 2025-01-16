@@ -1,8 +1,8 @@
 <script setup>
-import { ref, defineProps } from 'vue';
+import { ref, defineProps, toRefs } from 'vue';
 
-// Reçoit la piste en cours
-defineProps({
+// Reçoit les pistes et la piste en cours
+const props = defineProps({
   currentTrack: {
     type: Object,
     default: null,
@@ -12,6 +12,10 @@ defineProps({
     default: () => [],
   },
 });
+
+// On rend `tracks` réactif et on crée une copie modifiable de `currentTrack`
+const { tracks } = toRefs(props);
+const currentTrack = ref(props.currentTrack);
 
 // Référence à l'élément audio
 const audioElement = ref(null);
@@ -45,21 +49,30 @@ function stopAudio() {
 
 // Gestion de la fin de la piste
 function handleTrackEnd() {
+  console.log("Track ended. Mode selected:", selectedMode.value);
+
   const currentIndex = tracks.value.findIndex(track => track === currentTrack.value);
 
   if (selectedMode.value === "repeatTrack") {
-    // Répéter la même piste
+    console.log("Repeating track...");
     if (audioElement.value) {
       audioElement.value.currentTime = 0;
       audioElement.value.play();
     }
   } else if (selectedMode.value === "repeatList") {
-    // Passer à la piste suivante ou revenir à la première
-    const nextIndex = (currentIndex + 1) % tracks.value.length;
-    currentTrack.value = tracks.value[nextIndex];
+    console.log("Going to next track...");
+    if (tracks.value.length > 0) {
+      const nextIndex = (currentIndex + 1) % tracks.value.length;
+      currentTrack.value = { ...tracks.value[nextIndex] }; // Créer une nouvelle référence
+    }
+
+    setTimeout(() => {
+      if (audioElement.value) {
+        audioElement.value.play();
+      }
+    }, 100);
   } else {
-    // Ne rien faire en mode "No repeat"
-    console.log("Playback ended, no repeat mode active.");
+    console.log("No repeat, stopping playback.");
   }
 }
 
@@ -87,6 +100,7 @@ function formatTime(seconds) {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 </script>
+
 
 <template>
   <div>
